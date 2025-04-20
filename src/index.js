@@ -97,25 +97,26 @@ export async function convert(options) {
     css: css,
   };
 
-  let source, template;
-  
-  // Asynchronously convert
-  const promises = [
-    template = readFile(layoutPath, 'utf8').then(compile),
-    source = readFile(options.source, 'utf8'),
-    prepareHeader(options, styles.styles).then(v => options.header = v),
-    prepareFooter(options).then(v => options.footer = v),
-  ];
+  // Asynchronously read files and prepare components
+  const layoutPromise = readFile(layoutPath, 'utf8').then(compile);
+  const sourcePromise = readFile(options.source, 'utf8');
+  const headerPromise = prepareHeader(options, styles.styles);
+  const footerPromise = prepareFooter(options);
+
+  const [layoutTemplate, sourceMarkdown, headerHtml, footerHtml] = await Promise.all([
+    layoutPromise,
+    sourcePromise,
+    headerPromise,
+    footerPromise,
+  ]);
+
+  options.header = headerHtml;
+  options.footer = footerHtml;
 
   const emojis = !options.noEmoji;
   const syntaxHighlighting = !options.noHighlight;
   const simpleLineBreaks = !options.ghStyle;
-  let content = parseMarkdownToHtml(await source, emojis, syntaxHighlighting, simpleLineBreaks);
-
-  // This step awaits so options is valid
-  await Promise.all(promises);
-
-  template = await template;
+  let content = parseMarkdownToHtml(sourceMarkdown, emojis, syntaxHighlighting, simpleLineBreaks);
 
   content = qualifyImgSources(content, options);
 
