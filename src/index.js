@@ -121,39 +121,33 @@ export async function convert(options) {
   content = qualifyImgSources(content, options);
 
   local.body = new SafeString(content);
-
+    
   // Use loophole for this body template to avoid issues with editor extensions
-  const html = allowUnsafeNewFunction(() => template(local));
-
-  return createPdf(html, options);
+  const html = allowUnsafeNewFunction(() => layoutTemplate(local)); // Use layoutTemplate from Promise.all
+    
+  return await createPdf(html, options); // Add await
 }
-
-function prepareHeader(options, css) {
-  if (options.header) {
-    let headerTemplate;
-
-    // Get the hbs layout
-    return readFile(headerLayoutPath, 'utf8')
-      .then((headerLayout) => {
-        headerTemplate = compile(headerLayout);
-
-        // Get the header html
-        return readFile(options.header, 'utf8');
-      })
-      .then((headerContent) => {
-        const preparedHeader = qualifyImgSources(headerContent, options);
-
-        // Compile the header template
-        const headerHtml = headerTemplate({
-          content: new SafeString(preparedHeader),
-          css: new SafeString(css.replace(/"/gm, "'")),
-        });
-
-        return headerHtml;
-      });
-  } else {
-    return Promise.resolve();
+    
+async function prepareHeader(options, css) {
+  if (!options.header) {
+    return undefined; // Return early if no header
   }
+    
+  // Get the hbs layout
+  const headerLayoutContent = await readFile(headerLayoutPath, 'utf8');
+  const headerTemplate = compile(headerLayoutContent);
+    
+  // Get the header html
+  const headerContent = await readFile(options.header, 'utf8');
+  const preparedHeader = qualifyImgSources(headerContent, options);
+    
+  // Compile the header template
+  const headerHtml = headerTemplate({
+    content: new SafeString(preparedHeader),
+    css: new SafeString(css.replace(/"/gm, "'")),
+  });
+    
+  return headerHtml;
 }
 
 function prepareFooter(options) {
@@ -167,34 +161,43 @@ function prepareFooter(options) {
     return Promise.resolve();
   }
 }
-
-function createPdf(html, options) {
-  // Write html to a temp file
-  let browser;
-  let page;
-
-  const tempHtmlPath = resolve(
-    dirname(options.destination),
-    '_temp.html'
-  );
-
-  return writeFile(tempHtmlPath, html)
-    .then(async () => {
-      const browser = await launch({ headless: 'new' , args: ['--no-sandbox', '--disable-setuid-sandbox'] })
-      
-      const page = (await browser.pages())[0];
-      await page.goto('file:' + tempHtmlPath, { waitUntil: options.waitUntil ?? 'networkidle0' });
-      const puppetOptions = getOptions(options);
-
-      await page.pdf(puppetOptions);
-      return browser.close();
-    })
-    .then(() => {
-      if (options.debug) {
-        copyFileSync(tempHtmlPath, options.debug);
-      }
+    
+async function createPdf(html, options) {
+  const tempHtmlPath = resolve(dirname(options.destination), '_temp.html');
+  let browser = null; // Initialize browser to null
+    
+  try {
+    await writeFile(tempHtmlPath, html);
+    
+    browser = await launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const page = (await browser.pages())[0];
+    await page.goto('file:' + tempHtmlPath, { waitUntil: options.waitUntil ?? 'networkidle0' });
+    
+    const puppetOptions = getOptions(options);
+    await page.pdf(puppetOptions);
+    
+    await browser.close();
+    browser = null; // Indicate browser is closed
+    
+    if (options.debug) {
+      copyFileSync(tempHtmlPath, options.debug);
+    }
+    // unlinkSync moved to finally block
+    
+    return options.destination;
+  } catch (error) {
+    // Ensure browser is closed even if an error occurs
+    if (browser) {
+      await browser.close();
+    }
+    // Re-throw the error to be handled by the caller
+    throw error;
+  } finally {
+    // Clean up temp file in case of error or success
+    try {
       unlinkSync(tempHtmlPath);
-
-      return options.destination;
-    });
+    } catch (e) {
+      // Ignore errors if the file doesn't exist or couldn't be deleted
+    }
+  }
 }
