@@ -144,12 +144,16 @@ const options = {
     orientation: pdfOrientation,
     quality: '100',
     base: join('file://', __dirname, '/assets/'),
-    header: headerHeight ? {
-      height: headerHeight as string,
-    } : undefined,
-    footer: footerHeight ? {
-      height: footerHeight as string,
-    } : undefined,
+    header: headerHeight
+      ? {
+          height: headerHeight as string,
+        }
+      : undefined,
+    footer: footerHeight
+      ? {
+          height: footerHeight as string,
+        }
+      : undefined,
     border: {
       top: borderTop as string,
       left: borderLeft as string,

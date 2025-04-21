@@ -5,11 +5,11 @@ import {
   existsSync,
   readFileSync,
 } from 'fs';
-import should from 'should';
-should; // Import should to extend Object.prototype
+import { expect } from 'chai';
 import { execa } from 'execa';
 import { convert } from '../src/index.js';
 import { createOptions } from './utils.js';
+import { afterEach, beforeEach, describe, it } from 'vitest';
 
 function clean() {
   const filesToRemove = [
@@ -17,7 +17,7 @@ function clean() {
     './README.html',
     './output.pdf',
     './test-img-output.pdf',
-    './tests/test.html'
+    './tests/test.html',
   ];
 
   filesToRemove.forEach((file) => {
@@ -33,231 +33,176 @@ function clean() {
   });
 }
 
-describe('Convert CLI', function () {
-  this.timeout(180000);
+describe('Convert CLI', () => {
+  // Vitest automatically adds the timeout to the test context
+  // No need for this.timeout
 
-  after(clean);
+  afterEach(clean);
   beforeEach(clean);
 
-  context('when given a markdown file', () => {
-    it('creates a pdf', (done) => {
-      console.log('Starting test: creates a pdf');
-      execa('node', ['./dist/bin/index.js', './README.md'], { timeout: 60000 })
-        .then((result) => {
-          console.log('Command completed successfully');
-          const stdout = result.stdout;
-          const pdfExists = existsSync('./README.pdf');
-          
-          console.log('PDF exists:', pdfExists);
-          console.log('Stdout:', stdout);
-
-          should(pdfExists).be.true();
-          should(stdout).endWith('README.pdf');
-
-          done();
-        })
-        .catch((err) => {
-          console.error('Test error:', err.message);
-          done(err);
-        });
+  it('creates a pdf when given a markdown file', async () => {
+    console.log('Starting test: creates a pdf');
+    const result = await execa('node', ['./dist/bin/index.js', './README.md'], {
+      timeout: 60000,
     });
+
+    console.log('Command completed successfully');
+    const stdout = result.stdout;
+    const pdfExists = existsSync('./README.pdf');
+
+    console.log('PDF exists:', pdfExists);
+    console.log('Stdout:', stdout);
+
+    expect(pdfExists).to.be.true;
+    expect(stdout).to.include('README.pdf');
   });
 
-  context('when passed debug flag', () => {
-    it('creates a pdf and html file', function(done) {
-      this.timeout(30000); // Increase timeout
-      console.log('Starting test: creates a pdf and html file');
-      execa('node', ['./dist/bin/index.js', './README.md', '--debug'], { timeout: 20000 })
-        .then((result) => {
-          console.log('Command completed successfully');
-          const stdout = result.stdout;
-          const pdfExists = existsSync('./README.pdf');
-          const htmlExists = existsSync('./README.html');
-          
-          console.log('PDF exists:', pdfExists, 'HTML exists:', htmlExists);
-          console.log('Stdout:', stdout);
+  it('creates a pdf and html file when passed debug flag', async () => {
+    console.log('Starting test: creates a pdf and html file');
+    const result = await execa(
+      'node',
+      ['./dist/bin/index.js', './README.md', '--debug'],
+      { timeout: 20000 }
+    );
 
-          should(pdfExists).be.true();
-          should(htmlExists).be.true();
-          should(stdout).endWith('README.pdf');
+    console.log('Command completed successfully');
+    const stdout = result.stdout;
+    const pdfExists = existsSync('./README.pdf');
+    const htmlExists = existsSync('./README.html');
 
-          done();
-        })
-        .catch((err) => {
-          console.error('Test error:', err.message);
-          done(err);
-        });
-    });
+    console.log('PDF exists:', pdfExists, 'HTML exists:', htmlExists);
+    console.log('Stdout:', stdout);
+
+    expect(pdfExists).to.be.true;
+    expect(htmlExists).to.be.true;
+    expect(stdout).to.include('README.pdf');
   });
 
-  context('when passed a destination', () => {
-    it('creates a pdf at the specified destination', function(done) {
-      this.timeout(30000); // Increase timeout
-      console.log('Starting test: creates a pdf at the specified destination');
-      execa('node', ['./dist/bin/index.js', './README.md', 'output.pdf'], { timeout: 20000 })
-        .then((result) => {
-          console.log('Command completed successfully');
-          const stdout = result.stdout;
-          const pdfExists = existsSync('./output.pdf');
-          
-          console.log('PDF exists:', pdfExists);
-          console.log('Stdout:', stdout);
+  it('creates a pdf at the specified destination when passed a destination', async () => {
+    console.log('Starting test: creates a pdf at the specified destination');
+    const result = await execa(
+      'node',
+      ['./dist/bin/index.js', './README.md', 'output.pdf'],
+      { timeout: 20000 }
+    );
 
-          should(pdfExists).be.true();
-          should(stdout).endWith('output.pdf');
+    console.log('Command completed successfully');
+    const stdout = result.stdout;
+    const pdfExists = existsSync('./output.pdf');
 
-          done();
-        })
-        .catch((err) => {
-          console.error('Test error:', err.message);
-          done(err);
-        });
-    });
+    console.log('PDF exists:', pdfExists);
+    console.log('Stdout:', stdout);
+
+    expect(pdfExists).to.be.true;
+    expect(stdout).to.include('output.pdf');
   });
 
-  context('when given markdown with an image', () => {
-    it('creates a pdf', function(done) {
-      this.timeout(30000); // Increase timeout
-      console.log('Starting test: creates a pdf with image');
-      execa('node', ['./dist/bin/index.js', './tests/test.md', './test-img-output.pdf'], { timeout: 20000 })
-        .then((result) => {
-          console.log('Command completed successfully');
-          const stdout = result.stdout;
-          const pdfExists = existsSync('./test-img-output.pdf');
-          
-          console.log('PDF exists:', pdfExists);
-          console.log('Stdout:', stdout);
+  it('creates a pdf when given markdown with an image', async () => {
+    console.log('Starting test: creates a pdf with image');
+    const result = await execa(
+      'node',
+      ['./dist/bin/index.js', './tests/test.md', './test-img-output.pdf'],
+      { timeout: 20000 }
+    );
 
-          should(pdfExists).be.true();
-          should(stdout).endWith('test-img-output.pdf');
+    console.log('Command completed successfully');
+    const stdout = result.stdout;
+    const pdfExists = existsSync('./test-img-output.pdf');
 
-          done();
-        })
-        .catch((err) => {
-          console.error('Test error:', err.message);
-          done(err);
-        });
-    });
+    console.log('PDF exists:', pdfExists);
+    console.log('Stdout:', stdout);
+
+    expect(pdfExists).to.be.true;
+    expect(stdout).to.include('test-img-output.pdf');
   });
 
-  context('When custom style is passed', () => {
-    it('HTML file contains the custom style', function(done) {
-      this.timeout(30000); // Increase timeout for this test
-      execa('node', ['./dist/bin/index.js', './tests/test.md', '--style=./tests/test.css', '--debug'])
-        .then(() => {
-          const htmlContent = readFileSync('./tests/test.html', 'utf8');
-          const cssContent = readFileSync('./tests/test.css', 'utf8');
-          const ghStyleContent = readFileSync('./src/assets/github-markdown-css.css', 'utf8');
+  it('HTML file contains the custom style when custom style is passed', async () => {
+    await execa('node', [
+      './dist/bin/index.js',
+      './tests/test.md',
+      '--style=./tests/test.css',
+      '--debug',
+    ]);
 
-          should(htmlContent.includes(cssContent)).be.true();
-          should(htmlContent.includes(ghStyleContent)).be.false();
-          done();
-        })
-        .catch((err) => {
-          console.error('Test error:', err.message);
-          done(err);
-        });
-    });
+    const htmlContent = readFileSync('./tests/test.html', 'utf8');
+    const cssContent = readFileSync('./tests/test.css', 'utf8');
+    const ghStyleContent = readFileSync(
+      './src/assets/github-markdown-css.css',
+      'utf8'
+    );
 
-    it('HTML file contains the default styles when --gh-style is passed', function(done) {
-      this.timeout(30000); // Increase timeout for this test
-      execa('node', ['./dist/bin/index.js', './tests/test.md', '--style=./tests/test.css', '--debug', '--gh-style'])
-        .then(() => {
-          const htmlContent = readFileSync('./tests/test.html', 'utf8');
-          const cssContent = readFileSync('./tests/test.css', 'utf8');
-          const ghStyleContent = readFileSync('./src/assets/github-markdown-css.css', 'utf8');
+    expect(htmlContent.includes(cssContent)).to.be.true;
+    expect(htmlContent.includes(ghStyleContent)).to.be.false;
+  });
 
-          should(htmlContent.includes(cssContent)).be.true();
-          should(htmlContent.includes(ghStyleContent)).be.true();
-          done();
-        })
-        .catch((err) => {
-          console.error('Test error:', err.message);
-          done(err);
-        });
-    });
+  it('HTML file contains the default styles when --gh-style is passed', async () => {
+    await execa('node', [
+      './dist/bin/index.js',
+      './tests/test.md',
+      '--style=./tests/test.css',
+      '--debug',
+      '--gh-style',
+    ]);
+
+    const htmlContent = readFileSync('./tests/test.html', 'utf8');
+    const cssContent = readFileSync('./tests/test.css', 'utf8');
+    const ghStyleContent = readFileSync(
+      './src/assets/github-markdown-css.css',
+      'utf8'
+    );
+
+    expect(htmlContent.includes(cssContent)).to.be.true;
+    expect(htmlContent.includes(ghStyleContent)).to.be.true;
   });
 });
 
-describe('Convert API', function () {
-  this.timeout(180000);
-
-  after(clean);
+describe('Convert API', () => {
+  afterEach(clean);
   beforeEach(clean);
 
-  context('when given a markdown source', () => {
-    it('creates a pdf', function(done) {
-      this.timeout(30000); // Increase timeout
-      console.log('Starting API test: creates a pdf');
-      const options = createOptions({
-        source: 'README.md',
-      });
-      convert(options)
-        .then((pdfPath) => {
-          console.log('Convert completed successfully');
-          const pdfExists = existsSync('./README.pdf');
-          console.log('PDF exists:', pdfExists);
-
-          should(pdfExists).be.true();
-
-          done();
-        })
-        .catch((err) => {
-          console.error('API test error:', err.message);
-          done(err);
-        });
+  it('creates a pdf when given a markdown source', async () => {
+    console.log('Starting API test: creates a pdf');
+    const options = createOptions({
+      source: 'README.md',
     });
+
+    await convert(options);
+    console.log('Convert completed successfully');
+    const pdfExists = existsSync('./README.pdf');
+    console.log('PDF exists:', pdfExists);
+
+    expect(pdfExists).to.be.true;
   });
 
-  context('when debug is true', () => {
-    it('creates a html file', function(done) {
-      this.timeout(30000); // Increase timeout
-      console.log('Starting API test: creates a html file');
-      const options = createOptions({
-        source: 'README.md',
-        debug: true,
-      });
-      convert(options)
-        .then((pdfPath) => {
-          console.log('Convert completed successfully');
-          const pdfExists = existsSync('./README.pdf');
-          const htmlExists = existsSync('./README.html');
-          console.log('PDF exists:', pdfExists, 'HTML exists:', htmlExists);
-
-          should(pdfExists).be.true();
-          should(htmlExists).be.true();
-
-          done();
-        })
-        .catch((err) => {
-          console.error('API test error:', err.message);
-          done(err);
-        });
+  it('creates a html file when debug is true', async () => {
+    console.log('Starting API test: creates a html file');
+    const options = createOptions({
+      source: 'README.md',
+      debug: true,
     });
+
+    await convert(options);
+    console.log('Convert completed successfully');
+    const pdfExists = existsSync('./README.pdf');
+    const htmlExists = existsSync('./README.html');
+    console.log('PDF exists:', pdfExists, 'HTML exists:', htmlExists);
+
+    expect(pdfExists).to.be.true;
+    expect(htmlExists).to.be.true;
   });
 
-  context('when destination is set', () => {
-    it('creates a pdf at the destination', function(done) {
-      this.timeout(30000); // Increase timeout
-      console.log('Starting API test: creates a pdf at the destination');
-      const options = createOptions({
-        source: 'README.md',
-        destination: 'output.pdf',
-      });
-      convert(options)
-        .then((pdfPath) => {
-          console.log('Convert completed successfully');
-          const pdfExists = existsSync('./output.pdf');
-          console.log('PDF exists:', pdfExists);
-
-          should(pdfExists).be.true();
-
-          done();
-        })
-        .catch((err) => {
-          console.error('API test error:', err.message);
-          done(err);
-        });
+  it('creates a pdf at the destination when destination is set', async () => {
+    console.log('Starting API test: creates a pdf at the destination');
+    const options = createOptions({
+      source: 'README.md',
+      destination: 'output.pdf',
     });
+
+    await convert(options);
+    console.log('Convert completed successfully');
+    const pdfExists = existsSync('./output.pdf');
+    console.log('PDF exists:', pdfExists);
+
+    expect(pdfExists).to.be.true;
   });
 });

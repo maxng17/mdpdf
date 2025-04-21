@@ -13,7 +13,7 @@ export function getOptions(options: MdPdfOptions): PDFOptions {
     bottom?: string;
     left?: string;
   } = {};
-  
+
   if (options.pdf?.border) {
     margin.top = options.pdf.border.top || undefined;
     margin.right = options.pdf.border.right || undefined;
@@ -29,6 +29,8 @@ export function getOptions(options: MdPdfOptions): PDFOptions {
     displayHeaderFooter,
     headerTemplate: options.header || '',
     footerTemplate: options.footer || '',
-    landscape: !!(options.pdf?.orientation && options.pdf.orientation === 'landscape')
+    landscape: !!(
+      options.pdf?.orientation && options.pdf.orientation === 'landscape'
+    ),
   };
 }

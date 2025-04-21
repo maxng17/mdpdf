@@ -2,7 +2,7 @@ import {
   readFile as _readFile,
   writeFile as _writeFile,
   copyFileSync,
-  unlinkSync
+  unlinkSync,
 } from 'fs';
 import { join, dirname, resolve } from 'path';
 import { promisify } from 'util';
@@ -62,9 +62,9 @@ function getAllStyles(options: MdPdfOptions): MdPdfStyles {
 }
 
 function parseMarkdownToHtml(
-  markdown: string, 
-  convertEmojis: boolean, 
-  enableHighlight: boolean, 
+  markdown: string,
+  convertEmojis: boolean,
+  enableHighlight: boolean,
   simpleLineBreaks: boolean
 ): string {
   setFlavor('github');
@@ -72,9 +72,9 @@ function parseMarkdownToHtml(
     prefixHeaderId: false,
     ghCompatibleHeaderId: true,
     simpleLineBreaks,
-    extensions: []
+    extensions: [],
   };
-  
+
   // Sometimes emojis can mess with time representations
   // such as "00:00:00"
   if (convertEmojis) {
@@ -82,7 +82,7 @@ function parseMarkdownToHtml(
   }
 
   if (enableHighlight) {
-    options.extensions!.push(showdownHighlight)
+    options.extensions!.push(showdownHighlight);
   }
 
   const converter = new Converter(options);
@@ -90,7 +90,9 @@ function parseMarkdownToHtml(
   return converter.makeHtml(markdown);
 }
 
-export async function convert(options?: Partial<MdPdfOptions>): Promise<string> {
+export async function convert(
+  options?: Partial<MdPdfOptions>
+): Promise<string> {
   if (!options?.source) {
     throw new Error('Source path must be provided');
   }
@@ -131,12 +133,13 @@ export async function convert(options?: Partial<MdPdfOptions>): Promise<string> 
   const headerPromise = prepareHeader(fullOptions, styles.styles);
   const footerPromise = prepareFooter(fullOptions);
 
-  const [layoutTemplate, sourceMarkdown, headerHtml, footerHtml] = await Promise.all([
-    layoutPromise,
-    sourcePromise,
-    headerPromise,
-    footerPromise,
-  ]);
+  const [layoutTemplate, sourceMarkdown, headerHtml, footerHtml] =
+    await Promise.all([
+      layoutPromise,
+      sourcePromise,
+      headerPromise,
+      footerPromise,
+    ]);
 
   fullOptions.header = headerHtml;
   fullOptions.footer = footerHtml;
@@ -144,37 +147,45 @@ export async function convert(options?: Partial<MdPdfOptions>): Promise<string> 
   const emojis = !fullOptions.noEmoji;
   const syntaxHighlighting = !fullOptions.noHighlight;
   const simpleLineBreaks = !fullOptions.ghStyle;
-  let content = parseMarkdownToHtml(sourceMarkdown, emojis, syntaxHighlighting, simpleLineBreaks);
+  let content = parseMarkdownToHtml(
+    sourceMarkdown,
+    emojis,
+    syntaxHighlighting,
+    simpleLineBreaks
+  );
 
   content = qualifyImgSources(content, fullOptions);
 
   local.body = new SafeString(content);
-    
+
   // Use loophole for this body template to avoid issues with editor extensions
   const html = allowUnsafeNewFunction(() => layoutTemplate(local));
-    
+
   return await createPdf(html, fullOptions);
 }
-    
-async function prepareHeader(options: MdPdfOptions, css: string): Promise<string | undefined> {
+
+async function prepareHeader(
+  options: MdPdfOptions,
+  css: string
+): Promise<string | undefined> {
   if (!options.header) {
     return undefined; // Return early if no header
   }
-    
+
   // Get the hbs layout
   const headerLayoutContent = await readFile(headerLayoutPath, 'utf8');
   const headerTemplate = compile(headerLayoutContent);
-    
+
   // Get the header html
   const headerContent = await readFile(options.header, 'utf8');
   const preparedHeader = qualifyImgSources(headerContent, options);
-    
+
   // Compile the header template
   const headerHtml = headerTemplate({
     content: new SafeString(preparedHeader),
     css: new SafeString(css.replace(/"/gm, "'")),
   });
-    
+
   return headerHtml;
 }
 
@@ -189,31 +200,33 @@ function prepareFooter(options: MdPdfOptions): Promise<string | undefined> {
     return Promise.resolve(undefined);
   }
 }
-    
+
 async function createPdf(html: string, options: MdPdfOptions): Promise<string> {
   const tempHtmlPath = resolve(dirname(options.destination), '_temp.html');
   let browser: Browser | null = null; // Initialize browser to null
-    
+
   try {
     await writeFile(tempHtmlPath, html);
-    
-    browser = await launch({ 
-      headless: true, // Use boolean instead of 'new' string 
-      args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+
+    browser = await launch({
+      headless: true, // Use boolean instead of 'new' string
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
     const page = (await browser.pages())[0];
-    await page.goto('file:' + tempHtmlPath, { waitUntil: options.waitUntil ?? 'networkidle0' });
-    
+    await page.goto('file:' + tempHtmlPath, {
+      waitUntil: options.waitUntil ?? 'networkidle0',
+    });
+
     const puppetOptions = getOptions(options);
     await page.pdf(puppetOptions);
-    
+
     await browser.close();
     browser = null; // Indicate browser is closed
-    
+
     if (options.debug) {
       copyFileSync(tempHtmlPath, options.debug);
     }
-    
+
     return options.destination;
   } catch (error) {
     // Ensure browser is closed even if an error occurs
