@@ -3,9 +3,10 @@ import { readFileSync } from 'fs';
 import { parse } from 'url';
 import fileUrl from 'file-url';
 import cheerio from 'cheerio';
+import { AssetOptions } from './types.js';
 const { load } = cheerio;
 
-export function getStyleBlock(stylesheets) {
+export function getStyleBlock(stylesheets: string[]): string {
   // Read in all stylesheets and format them into HTML to
   // be placed in the header. We do this because the normal
   // <link...> doesn't work for the headers and footers.
@@ -20,7 +21,7 @@ export function getStyleBlock(stylesheets) {
   return styleHtml;
 }
 
-export function getStyles(stylesheets) {
+export function getStyles(stylesheets: string[]): string {
   let styleHtml = '';
   for (const i in stylesheets) {
     if (Object.prototype.hasOwnProperty.call(stylesheets, i)) {
@@ -32,7 +33,7 @@ export function getStyles(stylesheets) {
   return styleHtml;
 }
 
-export function hasAcceptableProtocol(src) {
+export function hasAcceptableProtocol(src: string): boolean {
   const acceptableProtocols = ['http:', 'https:'].join('|');
 
   const theUrl = parse(src);
@@ -43,7 +44,7 @@ export function hasAcceptableProtocol(src) {
   return new RegExp(acceptableProtocols).test(src);
 }
 
-export function processSrc(src, options) {
+export function processSrc(src: string, options: AssetOptions): string {
   if (hasAcceptableProtocol(src)) {
     // The protocol is great and okay!
     return src;
@@ -54,11 +55,15 @@ export function processSrc(src, options) {
   return fileUrl(resolvedSrc);
 }
 
-export function qualifyImgSources(html, options) {
+export function qualifyImgSources(html: string, options: AssetOptions): string {
   const $ = load(html);
 
   $('img').each((i, img) => {
-    img.attribs.src = processSrc(img.attribs.src, options);
+    const imgElement = $(img);
+    const src = imgElement.attr('src');
+    if (src) {
+      imgElement.attr('src', processSrc(src, options));
+    }
   });
 
   return $.html();

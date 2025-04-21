@@ -1,10 +1,17 @@
 import { resolve, dirname, join } from 'path';
 import { fileURLToPath } from 'url';
+import { MdPdfOptions } from '../src/types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export function createOptions(options) {
+interface OptionsInput {
+  source: string;
+  destination?: string;
+  debug?: boolean;
+}
+
+export function createOptions(options: OptionsInput): MdPdfOptions {
   const source = options.source;
   const destination =
     options.destination || source.slice(0, source.indexOf('.md')) + '.pdf';

@@ -3,18 +3,24 @@
   "version": "3.0.4",
   "description": "Markdown to PDF command line converter",
   "type": "module",
-  "main": "./src/index.js",
+  "main": "./dist/src/index.js",
   "scripts": {
-    "lint": "prettier --trailing-comma es5 --single-quote --list-different '{src,tests,bin}/**/*.js'",
-    "lint-fix": "prettier --trailing-comma es5 --single-quote --list-different '{src,tests,bin}/**/*.js' --write",
-    "test": "mocha ./tests/index.js"
+    "build": "tsc && chmod +x ./dist/bin/index.js && npm run copy-assets",
+    "copy-assets": "mkdir -p dist/src/assets dist/src/layouts && cp -R src/assets/* dist/src/assets/ && cp -R src/layouts/* dist/src/layouts/",
+    "lint": "prettier --trailing-comma es5 --single-quote --list-different '{src,tests,bin}/**/*.{ts,js}'",
+    "lint-fix": "prettier --trailing-comma es5 --single-quote --list-different '{src,tests,bin}/**/*.{ts,js}' --write",
+    "test": "npm run build && mocha ./dist/tests/index.js",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
   },
   "bin": {
-    "mdpdf": "bin/index.js"
+    "mdpdf": "dist/bin/index.js"
   },
   "files": [
-    "bin",
-    "src"
+    "dist/bin",
+    "dist/src",
+    "src/assets",
+    "src/layouts"
   ],
   "repository": {
     "type": "git",
@@ -48,9 +54,16 @@
     "showdown-highlight": "^3.1.0"
   },
   "devDependencies": {
+    "@types/handlebars": "^4.0.40",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.14.1",
+    "@types/puppeteer": "^5.4.7",
+    "@types/should": "^11.2.0",
+    "@types/showdown": "^2.0.6",
     "execa": "^8.0.1",
     "mocha": "^10.2.0",
     "prettier": "^3.1.1",
-    "should": "^13.2.3"
+    "should": "^13.2.3",
+    "typescript": "^5.8.3"
   }
 }

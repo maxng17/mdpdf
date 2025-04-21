@@ -78,13 +78,13 @@ const cli = meow(
   }
 );
 
-function isMd(path) {
+function isMd(path?: string): boolean {
   if (!path) {
     return true;
   }
   const accepted = ['md'];
   const current = path.split('.').pop();
-  if (accepted.indexOf(current) !== -1) {
+  if (current && accepted.indexOf(current) !== -1) {
     return true;
   }
   return false;
@@ -119,22 +119,23 @@ const envStyleName = 'MDPDF_STYLES';
 // If styles have not been provided through the CLI flag, but the environment variable exists
 if (!style && process.env[envStyleName]) {
   // Ensure the css file exists
-  const envCssPath = resolve(process.env[envStyleName]);
+  const envCssPath = resolve(process.env[envStyleName] as string);
   if (existsSync(envCssPath)) {
     style = envCssPath;
   }
 }
 
 const options = {
-  ghStyle: style ? ghStyleFlag : true,
+  ghStyle: style ? !!ghStyleFlag : true, // Convert to boolean
   defaultStyle: true,
   source: resolve(source),
   destination: resolve(destination),
+  assetDir: dirname(resolve(source)), // Added assetDir
   styles: style ? resolve(style) : null,
   header: header ? resolve(header) : null,
   footer: footer ? resolve(footer) : null,
-  noEmoji: cli.flags.noEmoji || false,
-  noHighlight: cli.flags.noHighlight || false,
+  noEmoji: !!cli.flags.noEmoji || false, // Convert to boolean
+  noHighlight: !!cli.flags.noHighlight || false, // Convert to boolean
   debug: debug
     ? resolve(source.slice(0, source.indexOf('.md')) + '.html')
     : null,
@@ -143,17 +144,17 @@ const options = {
     orientation: pdfOrientation,
     quality: '100',
     base: join('file://', __dirname, '/assets/'),
-    header: {
-      height: headerHeight || null,
-    },
-    footer: {
-      height: footerHeight || null,
-    },
+    header: headerHeight ? {
+      height: headerHeight as string,
+    } : undefined,
+    footer: footerHeight ? {
+      height: footerHeight as string,
+    } : undefined,
     border: {
-      top: borderTop,
-      left: borderLeft,
-      bottom: borderBottom,
-      right: borderRight,
+      top: borderTop as string,
+      left: borderLeft as string,
+      bottom: borderBottom as string,
+      right: borderRight as string,
     },
   },
 };

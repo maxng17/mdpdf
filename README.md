@@ -1,4 +1,5 @@
 # MDPDF - Markdown to PDF converter
+
 [![NPM version](https://img.shields.io/npm/v/mdpdf.svg?style=flat-square)](https://www.npmjs.com/package/mdpdf) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
 A command line markdown to pdf converter with support for page headers, footers, and custom stylesheets. Mdpdf is incredibly configurable and has a JavaScript API for more extravogant usage.
@@ -72,6 +73,8 @@ The API is very straight forward with a single function `convert()` which takes 
 
 ### Example API usage
 
+#### JavaScript
+
 ```JavaScript
 const mdpdf = require('mdpdf');
 const path = require('path');
@@ -91,6 +94,31 @@ mdpdf.convert(options).then((pdfPath) => {
 }).catch((err) => {
     console.error(err);
 });
+```
+
+#### TypeScript
+
+```TypeScript
+import { convert } from 'mdpdf';
+import { join } from 'path';
+
+const options = {
+    source: join(__dirname, 'README.md'),
+    destination: join(__dirname, 'output.pdf'),
+    styles: join(__dirname, 'md-styles.css'),
+    pdf: {
+        format: 'A4',
+        orientation: 'portrait'
+    }
+};
+
+convert(options)
+    .then((pdfPath) => {
+        console.log('PDF Path:', pdfPath);
+    })
+    .catch((err) => {
+        console.error(err);
+    });
 ```
 
 ### Options
@@ -124,4 +152,3 @@ docker run --rm -v $(pwd):/app mdpdf example.md
 ```
 
 This allows you to use mdpdf without needing to install Node.js or any dependencies on your host machine, only Docker is required.
-
