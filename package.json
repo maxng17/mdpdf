@@ -25,7 +25,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bluehatbrit/mdpdf.git"
+    "url": "git+https://github.com/elliotblackburn/mdpdf.git"
   },
   "keywords": [
     "markdown",
@@ -40,9 +40,9 @@
   },
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/bluehatbrit/mdpdf/issues"
+    "url": "https://github.com/elliotblackburn/mdpdf/issues"
   },
-  "homepage": "https://github.com/bluehatbrit/mdpdf#readme",
+  "homepage": "https://github.com/elliotblackburn/mdpdf#readme",
   "dependencies": {
     "cheerio": "1.0.0-rc.12",
     "file-url": "^4.0.0",
