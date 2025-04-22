@@ -8,11 +8,11 @@ on:
 jobs:
   test:
     name: Test on node ${{ matrix.node_version }} os ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        node_version: [23]
-        os: [ubuntu-latest, windows-latest]
+        node_version: [22, 23]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
 
     steps:
       - uses: actions/checkout@v4
