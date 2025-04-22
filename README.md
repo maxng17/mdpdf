@@ -8,13 +8,11 @@ For examples of how to use headers and footers, see the [examples directory](./e
 
 **If you're using the [Atom text editor](https://atom.io/), checkout the [markdown-pdf](https://atom.io/packages/markdown-pdf) plugin which uses mdpdf.**
 
-## Sponsor this project
-
-This project is actively maintained during evenings and weekends. If you or your company find it useful, please consider supporting the project through [sponsorship](https://github.com/users/BlueHatbRit/sponsorship).
-
 ## Contributions
 
-If you wish to report bugs or contribute fixes and features, please see the [contributors guide](./CONTRIBUTING.md)
+This project started as a simple tool to solve my own need. While it is open to contributions, this is maintained as a best effort when I get the time and desire to do so. Contributions are welcome but please understand that this is not a priority project for me, and so responses and actions may be slow or glacial.
+
+If you have a bug to report, or would like to submit a patch please read through the [contributors guide](./CONTRIBUTING.md).
 
 ## Installation
 
