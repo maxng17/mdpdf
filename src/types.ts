@@ -9,7 +9,7 @@ export interface MdPdfOptions {
   assetDir: string;
   ghStyle?: boolean;
   defaultStyle?: boolean;
-  styles?: string | null;
+  styles?: string[] | null;
   header?: string | null;
   footer?: string | null;
   noEmoji?: boolean;

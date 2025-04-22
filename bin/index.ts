@@ -53,6 +53,7 @@ const cli = meow(
       style: {
         type: 'string',
         shortFlag: 's',
+        isMultiple: true,
       },
       header: {
         type: 'string',
@@ -121,7 +122,7 @@ if (!style && process.env[envStyleName]) {
   // Ensure the css file exists
   const envCssPath = resolve(process.env[envStyleName] as string);
   if (existsSync(envCssPath)) {
-    style = envCssPath;
+    style = [envCssPath];
   }
 }
 
@@ -131,7 +132,11 @@ const options = {
   source: resolve(source),
   destination: resolve(destination),
   assetDir: dirname(resolve(source)), // Added assetDir
-  styles: style ? resolve(style) : null,
+  styles: style
+    ? style.map(function (s) {
+        return resolve(s);
+      })
+    : null,
   header: header ? resolve(header) : null,
   footer: footer ? resolve(footer) : null,
   noEmoji: !!cli.flags.noEmoji || false, // Convert to boolean

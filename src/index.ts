@@ -36,7 +36,7 @@ interface MdPdfStyles {
 }
 
 function getAllStyles(options: MdPdfOptions): MdPdfStyles {
-  const cssStyleSheets: string[] = [];
+  let cssStyleSheets: string[] = [];
 
   // GitHub Markdown Style
   if (options.ghStyle) {
@@ -52,7 +52,7 @@ function getAllStyles(options: MdPdfOptions): MdPdfStyles {
 
   // Optional user given CSS
   if (options.styles) {
-    cssStyleSheets.push(options.styles);
+    cssStyleSheets = cssStyleSheets.concat(options.styles);
   }
 
   return {
