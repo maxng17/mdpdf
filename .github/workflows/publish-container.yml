@@ -9,7 +9,7 @@ on:
     branches:
       - master
     tags:
-      - "*"
+      - '*'
 
 jobs:
   publish:
@@ -25,7 +25,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/bluehatbrit/mdpdf
+          images: ghcr.io/elliotblackburn/mdpdf
           flavor: |
             latest=true
           tags: |
@@ -40,7 +40,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: bluehatbrit
+          username: elliotblackburn
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and publish
