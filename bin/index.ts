@@ -40,6 +40,7 @@ const cli = meow(
         --version                    Display the application version
         --format=<format>            PDF size format: A3, A4, A5, Legal, Letter, Tabloid (Default: A4)
         --orientation=<orientation>  PDF orientation: portrait or landscape (Default: portrait)
+        --title=<title>              PDF title, primarily used by Chrome PDF Viewer (Default: source filename without extension)
 
 		Length parameters (<height> and <size>) require a unit. Valid units are mm, cm, in and px.
 
@@ -75,6 +76,10 @@ const cli = meow(
         type: 'string',
         shortFlag: 'o',
       },
+      title: {
+        type: 'string',
+        shortFlag: 't'
+      }
     },
   }
 );
@@ -113,6 +118,7 @@ const borderRight = cli.flags.borderRight || border;
 const pdfFormat = cli.flags.format || 'A4';
 const pdfOrientation = cli.flags.orientation || 'portrait';
 const ghStyleFlag = cli.flags.ghStyle || false;
+const title = cli.flags.title || null;
 
 // Name of the environement variable
 const envStyleName = 'MDPDF_STYLES';
@@ -145,6 +151,7 @@ const options = {
     ? resolve(source.slice(0, source.indexOf('.md')) + '.html')
     : null,
   pdf: {
+    title: title,
     format: pdfFormat,
     orientation: pdfOrientation,
     quality: '100',

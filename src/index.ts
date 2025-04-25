@@ -1,11 +1,12 @@
 import {
-  readFile as _readFile,
-  writeFile as _writeFile,
   copyFileSync,
-  unlinkSync,
+  unlinkSync
 } from 'fs';
-import { join, dirname, resolve } from 'path';
-import { promisify } from 'util';
+import {
+  readFile,
+  writeFile
+} from 'fs/promises'
+import { join, dirname, resolve, parse as parsePath } from 'path';
 import { fileURLToPath } from 'url';
 import showdown from 'showdown';
 const { setFlavor, Converter } = showdown;
@@ -18,9 +19,6 @@ import { allowUnsafeNewFunction } from 'loophole';
 import { getStyles, getStyleBlock, qualifyImgSources } from './utils.js';
 import { getOptions } from './puppeteer-helper.js';
 import { MdPdfOptions } from './types.js';
-
-const readFile = promisify(_readFile);
-const writeFile = promisify(_writeFile);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -203,6 +201,7 @@ function prepareFooter(options: MdPdfOptions): Promise<string | undefined> {
 
 async function createPdf(html: string, options: MdPdfOptions): Promise<string> {
   const tempHtmlPath = resolve(dirname(options.destination), '_temp.html');
+
   let browser: Browser | null = null; // Initialize browser to null
 
   try {
@@ -216,6 +215,14 @@ async function createPdf(html: string, options: MdPdfOptions): Promise<string> {
     await page.goto('file:' + tempHtmlPath, {
       waitUntil: options.waitUntil ?? 'networkidle0',
     });
+
+    // have to bypass by arguments
+    // custom title support
+    const targetTitle = options.pdf?.title ? options.pdf.title : parsePath(options.source).name
+    await page.evaluate((targetTitle) => {
+      // overwrite title to fix https://github.com/elliotblackburn/mdpdf/issues/211
+      document.title = targetTitle
+    }, targetTitle);
 
     const puppetOptions = getOptions(options);
     await page.pdf(puppetOptions);

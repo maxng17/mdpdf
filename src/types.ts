@@ -17,6 +17,7 @@ export interface MdPdfOptions {
   debug?: string | null;
   waitUntil?: 'networkidle0' | 'networkidle2' | 'domcontentloaded' | 'load';
   pdf?: {
+    title?: string | null;
     format?: string;
     orientation?: string;
     quality?: string;

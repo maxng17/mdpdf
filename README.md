@@ -48,6 +48,7 @@ Install locally to access the API.
 * `--version`                   - Display the application version
 * `--format=<format>`           - PDF size format: A3, A4, A5, Legal, Letter, Tabloid (Default: A4)
 * `--orientation=<orientation>` - PDF orientation: portrait or landscape (Default: portrait)
+* `--title=<title>`             - PDF title, primarily used by Chrome PDF Viewer (Default: source filename without extension)
 
 Length parameters (`<height>` and `<size>`) require a unit. Valid units are `mm`, `cm`, `in` and `px`.
 
