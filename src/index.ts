@@ -13,7 +13,6 @@ import { allowUnsafeNewFunction } from 'loophole';
 import { getStyles, getStyleBlock, qualifyImgSources } from './utils.js';
 import { getOptions } from './puppeteer-helper.js';
 import { MdPdfOptions } from './types.js';
-import { C } from 'vitest/dist/chunks/reporters.d.79o4mouw.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
