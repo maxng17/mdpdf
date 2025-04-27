@@ -110,7 +110,7 @@ if (!source || !isMd(source)) {
 const destination =
   cli.input[1] || source.slice(0, source.indexOf('.md')) + '.pdf';
 const debug = cli.flags.debug || false;
-let style = cli.flags.style;
+let style = cli.flags.style || [];
 const header = cli.flags.header;
 const headerHeight = cli.flags.hHeight;
 const footer = cli.flags.footer;
@@ -138,8 +138,12 @@ if (!style && process.env[envStyleName]) {
   }
 }
 
+console.log(style);
+console.log(ghStyleFlag);
+console.log(style.length > 0 ? !!ghStyleFlag : true);
+
 const options = {
-  ghStyle: style ? !!ghStyleFlag : true, // Convert to boolean
+  ghStyle: style.length > 0 ? !!ghStyleFlag : true, // Convert to boolean
   defaultStyle: true,
   source: resolve(source),
   destination: resolve(destination),
