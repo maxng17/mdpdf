@@ -139,10 +139,6 @@ if (!style && process.env[envStyleName]) {
   }
 }
 
-console.log(style);
-console.log(ghStyleFlag);
-console.log(style.length > 0 ? !!ghStyleFlag : true);
-
 const options = {
   ghStyle: style.length > 0 ? !!ghStyleFlag : true, // Convert to boolean
   defaultStyle: true,
