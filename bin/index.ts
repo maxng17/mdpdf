@@ -93,7 +93,7 @@ function isMd(path?: string): boolean {
   if (!path) {
     return true;
   }
-  const accepted = ['md'];
+  const accepted = ['md', 'markdown'];
   const current = path.split('.').pop();
   if (current && accepted.indexOf(current) !== -1) {
     return true;
@@ -104,7 +104,8 @@ function isMd(path?: string): boolean {
 const source = cli.input[0];
 if (!source || !isMd(source)) {
   // Invalid source, show help and exit
-  cli.showHelp();
+  console.error('Source was not provided, or was not a markdown file');
+  cli.showHelp(1);
 }
 
 const destination =
