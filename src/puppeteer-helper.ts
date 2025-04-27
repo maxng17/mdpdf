@@ -32,5 +32,6 @@ export function getOptions(options: MdPdfOptions): PDFOptions {
     landscape: !!(
       options.pdf?.orientation && options.pdf.orientation === 'landscape'
     ),
+    timeout: options?.pdf?.timeout || 30_000,
   };
 }

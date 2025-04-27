@@ -34,5 +34,6 @@ export interface MdPdfOptions {
       bottom?: string;
       right?: string;
     };
+    timeout?: number | null;
   };
 }

@@ -1,11 +1,5 @@
-import {
-  copyFileSync,
-  unlinkSync
-} from 'fs';
-import {
-  readFile,
-  writeFile
-} from 'fs/promises'
+import { copyFileSync, unlinkSync } from 'fs';
+import { readFile, writeFile } from 'fs/promises';
 import { join, dirname, resolve, parse as parsePath } from 'path';
 import { fileURLToPath } from 'url';
 import showdown from 'showdown';
@@ -19,6 +13,7 @@ import { allowUnsafeNewFunction } from 'loophole';
 import { getStyles, getStyleBlock, qualifyImgSources } from './utils.js';
 import { getOptions } from './puppeteer-helper.js';
 import { MdPdfOptions } from './types.js';
+import { C } from 'vitest/dist/chunks/reporters.d.79o4mouw.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -218,10 +213,12 @@ async function createPdf(html: string, options: MdPdfOptions): Promise<string> {
 
     // have to bypass by arguments
     // custom title support
-    const targetTitle = options.pdf?.title ? options.pdf.title : parsePath(options.source).name
+    const targetTitle = options.pdf?.title
+      ? options.pdf.title
+      : parsePath(options.source).name;
     await page.evaluate((targetTitle) => {
       // overwrite title to fix https://github.com/elliotblackburn/mdpdf/issues/211
-      document.title = targetTitle
+      document.title = targetTitle;
     }, targetTitle);
 
     const puppetOptions = getOptions(options);

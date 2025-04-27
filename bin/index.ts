@@ -40,7 +40,8 @@ const cli = meow(
         --version                    Display the application version
         --format=<format>            PDF size format: A3, A4, A5, Legal, Letter, Tabloid (Default: A4)
         --orientation=<orientation>  PDF orientation: portrait or landscape (Default: portrait)
-        --title=<title>              PDF title, primarily used by Chrome PDF Viewer (Default: source filename without extension)
+        --title=<title>              PDF title, primarily used by some PDF viewers (Default: source filename without extension)
+        --timeout=<timeout>          Timeout to apply pass to puppeteer for the maximum duration of rendering. (Default: 30_000)
 
 		Length parameters (<height> and <size>) require a unit. Valid units are mm, cm, in and px.
 
@@ -78,8 +79,12 @@ const cli = meow(
       },
       title: {
         type: 'string',
-        shortFlag: 't'
-      }
+        shortFlag: 't',
+      },
+      timeout: {
+        type: 'number',
+        default: 30_000,
+      },
     },
   }
 );
@@ -119,6 +124,7 @@ const pdfFormat = cli.flags.format || 'A4';
 const pdfOrientation = cli.flags.orientation || 'portrait';
 const ghStyleFlag = cli.flags.ghStyle || false;
 const title = cli.flags.title || null;
+const timeout = cli.flags.timeout;
 
 // Name of the environement variable
 const envStyleName = 'MDPDF_STYLES';
@@ -172,6 +178,7 @@ const options = {
       bottom: borderBottom as string,
       right: borderRight as string,
     },
+    timeout: timeout,
   },
 };
 
