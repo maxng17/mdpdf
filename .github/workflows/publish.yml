@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - '*'
+  workflow_dispatch:
 
 jobs:
   publish-npm:
@@ -15,7 +16,7 @@ jobs:
           node-version: 23
           registry-url: https://registry.npmjs.org/
       - run: npm ci
-      - run: npm build
+      - run: npm run build
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
