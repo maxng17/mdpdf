@@ -13,10 +13,10 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 
-RUN npm install
-
 COPY . ./
 
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-ENTRYPOINT ["/app/bin/index.js"]
+RUN npm ci && npm run build
+
+ENTRYPOINT ["/app/dist/bin/index.js"]
