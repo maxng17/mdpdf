@@ -34,8 +34,13 @@ function getAllStyles(options: MdPdfOptions): MdPdfStyles {
   if (options.ghStyle) {
     cssStyleSheets.push(join(__dirname, '/assets/github-markdown-css.css'));
   }
-  // Highlight CSS
-  cssStyleSheets.push(join(__dirname, '/assets/highlight/styles/github.css'));
+  
+  // Highlight CSS - use custom path if provided, otherwise fall back to default
+  if (options.highlightCssPath) {
+    cssStyleSheets.push(options.highlightCssPath);
+  } else {
+    cssStyleSheets.push(join(__dirname, '/assets/highlight/styles/github.css'));
+  }
 
   // Some additional defaults such as margins
   if (options.defaultStyle) {
@@ -105,6 +110,7 @@ export async function convert(
     footer: options.footer,
     noEmoji: options.noEmoji,
     noHighlight: options.noHighlight,
+    highlightCssPath: options.highlightCssPath,
     debug: options.debug,
     waitUntil: options.waitUntil,
     pdf: options.pdf,

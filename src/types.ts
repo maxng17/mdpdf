@@ -14,6 +14,7 @@ export interface MdPdfOptions {
   footer?: string | null;
   noEmoji?: boolean;
   noHighlight?: boolean;
+  highlightCssPath?: string | null;
   debug?: string | null;
   waitUntil?: 'networkidle0' | 'networkidle2' | 'domcontentloaded' | 'load';
   pdf?: {

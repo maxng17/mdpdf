@@ -35,6 +35,7 @@ const cli = meow(
         --gh-style                   Enable default gh-styles, when --style is used
         --no-emoji                   Disables emoji conversions
         --no-highlight               Disables syntax highlighting
+        --highlight-css=<filename>   Path to custom highlight CSS file (useful when using as dependency)
         --debug                      Save the generated html for debugging
         --help                       Display this menu
         --version                    Display the application version
@@ -85,6 +86,9 @@ const cli = meow(
         type: 'number',
         default: 30_000,
       },
+      highlightCss: {
+        type: 'string',
+      },
     },
   }
 );
@@ -126,6 +130,7 @@ const pdfOrientation = cli.flags.orientation || 'portrait';
 const ghStyleFlag = cli.flags.ghStyle || false;
 const title = cli.flags.title || null;
 const timeout = cli.flags.timeout;
+const highlightCss = cli.flags.highlightCss;
 
 // Name of the environement variable
 const envStyleName = 'MDPDF_STYLES';
@@ -154,6 +159,7 @@ const options = {
   footer: footer ? resolve(footer) : null,
   noEmoji: !!cli.flags.noEmoji || false, // Convert to boolean
   noHighlight: !!cli.flags.noHighlight || false, // Convert to boolean
+  highlightCssPath: highlightCss ? resolve(highlightCss) : null,
   debug: debug
     ? resolve(source.slice(0, source.indexOf('.md')) + '.html')
     : null,

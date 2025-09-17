@@ -43,6 +43,8 @@ Install locally to access the API.
 * `--border-right=<size>`       - Right border (default: 20mm)
 * `--gh-style`                  - Enable default gh-styles, when --style is used
 * `--no-emoji`                  - Disables emoji conversions
+* `--no-highlight`              - Disables syntax highlighting
+* `--highlight-css=<filename>`  - Path to custom highlight CSS file (useful when using as dependency)
 * `--debug`                     - Save the generated html for debugging
 * `--help`                      - Display this menu
 * `--version`                   - Display the application version
@@ -95,6 +97,31 @@ mdpdf.convert(options).then((pdfPath) => {
 });
 ```
 
+#### Using as a dependency with pnpm
+
+When using mdpdf as a dependency in projects that use pnpm, you may need to specify a custom highlight CSS path since pnpm uses a different node_modules structure:
+
+```javascript
+const mdpdf = require('mdpdf');
+const path = require('path');
+
+let options = {
+    source: path.join(__dirname, 'README.md'),
+    destination: path.join(__dirname, 'output.pdf'),
+    highlightCssPath: path.join(__dirname, 'node_modules/mdpdf/dist/src/assets/highlight/styles/github.css'),
+    pdf: {
+        format: 'A4',
+        orientation: 'portrait'
+    }
+};
+
+mdpdf.convert(options).then((pdfPath) => {
+    console.log('PDF Path:', pdfPath);
+}).catch((err) => {
+    console.error(err);
+});
+```
+
 #### TypeScript
 
 ```TypeScript
@@ -105,6 +132,8 @@ const options = {
     source: join(__dirname, 'README.md'),
     destination: join(__dirname, 'output.pdf'),
     styles: join(__dirname, 'md-styles.css'),
+    // For pnpm users, specify custom highlight CSS path:
+    // highlightCssPath: join(__dirname, 'node_modules/mdpdf/dist/src/assets/highlight/styles/github.css'),
     pdf: {
         format: 'A4',
         orientation: 'portrait'
