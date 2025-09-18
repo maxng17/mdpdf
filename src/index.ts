@@ -34,6 +34,10 @@ function getAllStyles(options: MdPdfOptions): MdPdfStyles {
   if (options.ghStyle) {
     cssStyleSheets.push(join(__dirname, '/assets/github-markdown-css.css'));
   }
+
+  if (options.styles) {
+    cssStyleSheets = cssStyleSheets.concat(options.styles);
+  }
   
   // Highlight CSS - use custom path if provided, otherwise fall back to default
   if (options.highlightCssPath) {
@@ -48,9 +52,7 @@ function getAllStyles(options: MdPdfOptions): MdPdfStyles {
   }
 
   // Optional user given CSS
-  if (options.styles) {
-    cssStyleSheets = cssStyleSheets.concat(options.styles);
-  }
+
 
   return {
     styles: getStyles(cssStyleSheets),
