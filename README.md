@@ -43,8 +43,6 @@ Install locally to access the API.
 * `--border-right=<size>`       - Right border (default: 20mm)
 * `--gh-style`                  - Enable default gh-styles, when --style is used
 * `--no-emoji`                  - Disables emoji conversions
-* `--no-highlight`              - Disables syntax highlighting
-* `--highlight-css=<filename>`  - Path to custom highlight CSS file (useful when using as dependency)
 * `--debug`                     - Save the generated html for debugging
 * `--help`                      - Display this menu
 * `--version`                   - Display the application version

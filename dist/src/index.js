@@ -24,18 +24,11 @@ function getAllStyles(options) {
     if (options.ghStyle) {
         cssStyleSheets.push(join(__dirname, '/assets/github-markdown-css.css'));
     }
-    // Highlight CSS - use custom path if provided, otherwise fall back to default
-    if (options.highlightCssPath) {
-        cssStyleSheets.push(options.highlightCssPath);
-    }
-    else {
-        cssStyleSheets.push(join(__dirname, '/assets/highlight/styles/github.css'));
-    }
     // Some additional defaults such as margins
     if (options.defaultStyle) {
         cssStyleSheets.push(join(__dirname, '/assets/default.css'));
     }
-    // Optional user given CSS
+    // User provided CSS (including any highlight CSS they want)
     if (options.styles) {
         cssStyleSheets = cssStyleSheets.concat(options.styles);
     }
@@ -81,8 +74,6 @@ export async function convert(options) {
         header: options.header,
         footer: options.footer,
         noEmoji: options.noEmoji,
-        noHighlight: options.noHighlight,
-        highlightCssPath: options.highlightCssPath,
         debug: options.debug,
         waitUntil: options.waitUntil,
         pdf: options.pdf,
@@ -106,7 +97,7 @@ export async function convert(options) {
     fullOptions.header = headerHtml;
     fullOptions.footer = footerHtml;
     const emojis = !fullOptions.noEmoji;
-    const syntaxHighlighting = !fullOptions.noHighlight;
+    const syntaxHighlighting = true; // Always enable syntax highlighting
     const simpleLineBreaks = !fullOptions.ghStyle;
     let content = parseMarkdownToHtml(sourceMarkdown, emojis, syntaxHighlighting, simpleLineBreaks);
     content = qualifyImgSources(content, fullOptions);
