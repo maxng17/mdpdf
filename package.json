@@ -6,7 +6,7 @@
   "main": "./dist/src/index.js",
   "scripts": {
     "build": "tsc && chmod +x ./dist/bin/index.js && npm run copy-assets",
-    "copy-assets": "mkdir -p dist/src/assets dist/src/layouts && cp -R src/assets/* dist/src/assets/ && cp -R src/layouts/* dist/src/layouts/",
+    "copy-assets": "mkdir -p dist/src/assets && cp -R src/assets/* dist/src/assets/",
     "lint": "prettier --trailing-comma es5 --single-quote --list-different '{src,tests,bin}/**/*.{ts,js}'",
     "lint-fix": "prettier --trailing-comma es5 --single-quote --list-different '{src,tests,bin}/**/*.{ts,js}' --write",
     "test": "npm run build && vitest run",

@@ -1,6 +1,6 @@
 import { copyFileSync, unlinkSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
-import { join, dirname, resolve, parse as parsePath } from 'path';
+import { dirname, resolve, parse as parsePath } from 'path';
 import { fileURLToPath } from 'url';
 import showdown from 'showdown';
 const { setFlavor, Converter } = showdown;
@@ -12,12 +12,9 @@ const { SafeString, compile } = handlebars;
 import { allowUnsafeNewFunction } from 'loophole';
 import { getStyles, getStyleBlock, qualifyImgSources } from './utils.js';
 import { getOptions } from './puppeteer-helper.js';
-import { DEFAULT_CSS, GITHUB_MARKDOWN_CSS, HIHGLIGHT_STYLES } from './constants.js';
+import { DEFAULT_CSS, GITHUB_MARKDOWN_CSS, HIHGLIGHT_STYLES, DOC_BODY_TEMPLATE, HEADER_TEMPLATE, FOOTER_TEMPLATE } from './constants.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-// Main layout template
-const layoutPath = join(__dirname, '/layouts/doc-body.hbs');
-const headerLayoutPath = join(__dirname, '/layouts/header.hbs');
 function getAllStyles() {
     const cssStyleSheets = [DEFAULT_CSS, HIHGLIGHT_STYLES, GITHUB_MARKDOWN_CSS];
     return {
@@ -69,12 +66,11 @@ export async function convert(options) {
         css: css,
     };
     // Asynchronously read files and prepare components
-    const layoutPromise = readFile(layoutPath, 'utf8').then(compile);
+    const layoutTemplate = compile(DOC_BODY_TEMPLATE);
     const sourcePromise = readFile(fullOptions.source, 'utf8');
     const headerPromise = prepareHeader(fullOptions, styles.styles);
     const footerPromise = prepareFooter(fullOptions);
-    const [layoutTemplate, sourceMarkdown, headerHtml, footerHtml] = await Promise.all([
-        layoutPromise,
+    const [sourceMarkdown, headerHtml, footerHtml] = await Promise.all([
         sourcePromise,
         headerPromise,
         footerPromise,
@@ -95,9 +91,8 @@ async function prepareHeader(options, css) {
     if (!options.header) {
         return undefined; // Return early if no header
     }
-    // Get the hbs layout
-    const headerLayoutContent = await readFile(headerLayoutPath, 'utf8');
-    const headerTemplate = compile(headerLayoutContent);
+    // Use inline template
+    const headerTemplate = compile(HEADER_TEMPLATE);
     // Get the header html
     const headerContent = await readFile(options.header, 'utf8');
     const preparedHeader = qualifyImgSources(headerContent, options);
@@ -112,7 +107,13 @@ function prepareFooter(options) {
     if (options.footer) {
         return readFile(options.footer, 'utf8').then((footerContent) => {
             const preparedFooter = qualifyImgSources(footerContent, options);
-            return preparedFooter;
+            // Use inline template
+            const footerTemplate = compile(FOOTER_TEMPLATE);
+            const footerHtml = footerTemplate({
+                content: new SafeString(preparedFooter),
+                css: new SafeString(''), // Footer doesn't need CSS styling
+            });
+            return footerHtml;
         });
     }
     else {

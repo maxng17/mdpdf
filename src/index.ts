@@ -1,7 +1,6 @@
 import { copyFileSync, unlinkSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
-import { join, dirname, resolve, parse as parsePath } from 'path';
-import { fileURLToPath } from 'url';
+import { dirname, resolve, parse as parsePath } from 'path';
 import showdown from 'showdown';
 const { setFlavor, Converter } = showdown;
 import showdownEmoji from 'showdown-emoji';
@@ -13,14 +12,10 @@ import { allowUnsafeNewFunction } from 'loophole';
 import { getStyles, getStyleBlock, qualifyImgSources } from './utils.js';
 import { getOptions } from './puppeteer-helper.js';
 import type { MdPdfOptions } from './types.js';
-import { DEFAULT_CSS, GITHUB_MARKDOWN_CSS, HIHGLIGHT_STYLES } from './constants.js';
+import { DEFAULT_CSS, GITHUB_MARKDOWN_CSS, HIHGLIGHT_STYLES, DOC_BODY_TEMPLATE, HEADER_TEMPLATE, FOOTER_TEMPLATE } from './constants.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
-// Main layout template
-const layoutPath = join(__dirname, '/layouts/doc-body.hbs');
-const headerLayoutPath = join(__dirname, '/layouts/header.hbs');
+// Templates are now inline constants
 
 interface MdPdfStyles {
   styles: string;
@@ -99,14 +94,13 @@ export async function convert(
   };
 
   // Asynchronously read files and prepare components
-  const layoutPromise = readFile(layoutPath, 'utf8').then(compile);
+  const layoutTemplate = compile(DOC_BODY_TEMPLATE);
   const sourcePromise = readFile(fullOptions.source, 'utf8');
   const headerPromise = prepareHeader(fullOptions, styles.styles);
   const footerPromise = prepareFooter(fullOptions);
 
-  const [layoutTemplate, sourceMarkdown, headerHtml, footerHtml] =
+  const [sourceMarkdown, headerHtml, footerHtml] =
     await Promise.all([
-      layoutPromise,
       sourcePromise,
       headerPromise,
       footerPromise,
@@ -143,9 +137,8 @@ async function prepareHeader(
     return undefined; // Return early if no header
   }
 
-  // Get the hbs layout
-  const headerLayoutContent = await readFile(headerLayoutPath, 'utf8');
-  const headerTemplate = compile(headerLayoutContent);
+  // Use inline template
+  const headerTemplate = compile(HEADER_TEMPLATE);
 
   // Get the header html
   const headerContent = await readFile(options.header, 'utf8');
@@ -164,8 +157,15 @@ function prepareFooter(options: MdPdfOptions): Promise<string | undefined> {
   if (options.footer) {
     return readFile(options.footer, 'utf8').then((footerContent) => {
       const preparedFooter = qualifyImgSources(footerContent, options);
+      
+      // Use inline template
+      const footerTemplate = compile(FOOTER_TEMPLATE);
+      const footerHtml = footerTemplate({
+        content: new SafeString(preparedFooter),
+        css: new SafeString(''), // Footer doesn't need CSS styling
+      });
 
-      return preparedFooter;
+      return footerHtml;
     });
   } else {
     return Promise.resolve(undefined);

@@ -111,6 +111,26 @@ export const HIHGLIGHT_STYLES = `
 
 `;
 
+export const DOC_BODY_TEMPLATE = `<!DOCTYPE html>
+<html>
+    <head>
+        {{css}}
+
+        <!--<script src="{{highlightJs}}"></script>-->
+    </head>
+    <body class="markdown-body">
+        {{body}}
+    </body>
+</html>`;
+
+export const HEADER_TEMPLATE = `<header class="markdown-body" style="{{css}}">
+  {{content}}
+</header>`;
+
+export const FOOTER_TEMPLATE = `<footer styles="{{css}}">
+  {{content}}
+</footer>`;
+
 export const GITHUB_MARKDOWN_CSS = `
 .markdown-body {
   --base-size-4: 0.25rem;
