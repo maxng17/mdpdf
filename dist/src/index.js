@@ -1,7 +1,6 @@
 import { copyFileSync, unlinkSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import { dirname, resolve, parse as parsePath } from 'path';
-import { fileURLToPath } from 'url';
 import showdown from 'showdown';
 const { setFlavor, Converter } = showdown;
 import showdownEmoji from 'showdown-emoji';
@@ -13,8 +12,6 @@ import { allowUnsafeNewFunction } from 'loophole';
 import { getStyles, getStyleBlock, qualifyImgSources } from './utils.js';
 import { getOptions } from './puppeteer-helper.js';
 import { DEFAULT_CSS, GITHUB_MARKDOWN_CSS, HIHGLIGHT_STYLES, DOC_BODY_TEMPLATE, HEADER_TEMPLATE, FOOTER_TEMPLATE } from './constants.js';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 function getAllStyles() {
     const cssStyleSheets = [DEFAULT_CSS, HIHGLIGHT_STYLES, GITHUB_MARKDOWN_CSS];
     return {
