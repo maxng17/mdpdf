@@ -6,13 +6,14 @@ import showdown from 'showdown';
 const { setFlavor, Converter } = showdown;
 import showdownEmoji from 'showdown-emoji';
 import showdownHighlight from 'showdown-highlight';
-import { launch, Browser } from 'puppeteer';
+import { launch, type Browser } from 'puppeteer';
 import handlebars from 'handlebars';
 const { SafeString, compile } = handlebars;
 import { allowUnsafeNewFunction } from 'loophole';
 import { getStyles, getStyleBlock, qualifyImgSources } from './utils.js';
 import { getOptions } from './puppeteer-helper.js';
-import { MdPdfOptions } from './types.js';
+import type { MdPdfOptions } from './types.js';
+import { DEFAULT_CSS, GITHUB_MARKDOWN_CSS, HIHGLIGHT_STYLES } from './constants.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -20,30 +21,14 @@ const __dirname = dirname(__filename);
 // Main layout template
 const layoutPath = join(__dirname, '/layouts/doc-body.hbs');
 const headerLayoutPath = join(__dirname, '/layouts/header.hbs');
-const footerLayoutPath = join(__dirname, '/layouts/footer.hbs');
 
 interface MdPdfStyles {
   styles: string;
   styleBlock: string;
 }
 
-function getAllStyles(options: MdPdfOptions): MdPdfStyles {
-  let cssStyleSheets: string[] = [];
-
-  // GitHub Markdown Style
-  if (options.ghStyle) {
-    cssStyleSheets.push(join(__dirname, '/assets/github-markdown-css.css'));
-  }
-
-  // Some additional defaults such as margins
-  if (options.defaultStyle) {
-    cssStyleSheets.push(join(__dirname, '/assets/default.css'));
-  }
-
-  // User provided CSS (including any highlight CSS they want)
-  if (options.styles) {
-    cssStyleSheets = cssStyleSheets.concat(options.styles);
-  }
+function getAllStyles(): MdPdfStyles {
+  const cssStyleSheets = [DEFAULT_CSS, HIHGLIGHT_STYLES, GITHUB_MARKDOWN_CSS];
 
   return {
     styles: getStyles(cssStyleSheets),
@@ -96,9 +81,6 @@ export async function convert(
     source: options.source,
     destination: options.destination,
     assetDir: options.assetDir || dirname(resolve(options.source)),
-    ghStyle: options.ghStyle,
-    defaultStyle: options.defaultStyle,
-    styles: options.styles,
     header: options.header,
     footer: options.footer,
     noEmoji: options.noEmoji,
@@ -107,7 +89,7 @@ export async function convert(
     pdf: options.pdf,
   };
 
-  const styles = getAllStyles(fullOptions);
+  const styles = getAllStyles();
   const css = new SafeString(styles.styleBlock);
   const local: {
     css: typeof SafeString.prototype;
@@ -135,7 +117,7 @@ export async function convert(
 
   const emojis = !fullOptions.noEmoji;
   const syntaxHighlighting = true; // Always enable syntax highlighting
-  const simpleLineBreaks = !fullOptions.ghStyle;
+  const simpleLineBreaks = false; // Always use GitHub-style line breaks
   let content = parseMarkdownToHtml(
     sourceMarkdown,
     emojis,
@@ -239,7 +221,7 @@ async function createPdf(html: string, options: MdPdfOptions): Promise<string> {
     // Clean up temp file in case of error or success
     try {
       unlinkSync(tempHtmlPath);
-    } catch (e) {
+    } catch (_e) {
       // Ignore errors if the file doesn't exist or couldn't be deleted
     }
   }

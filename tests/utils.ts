@@ -18,12 +18,9 @@ export function createOptions(options: OptionsInput): MdPdfOptions {
   const debug = options.debug || false;
 
   return {
-    ghStyle: true,
-    defaultStyle: true,
     source: resolve(source),
     destination: resolve(destination),
     assetDir: dirname(resolve(source)),
-    styles: null,
     header: null,
     debug: debug ? source.slice(0, source.indexOf('.md')) + '.html' : null,
     pdf: {

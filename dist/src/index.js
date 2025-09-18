@@ -12,26 +12,14 @@ const { SafeString, compile } = handlebars;
 import { allowUnsafeNewFunction } from 'loophole';
 import { getStyles, getStyleBlock, qualifyImgSources } from './utils.js';
 import { getOptions } from './puppeteer-helper.js';
+import { DEFAULT_CSS, GITHUB_MARKDOWN_CSS, HIHGLIGHT_STYLES } from './constants.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 // Main layout template
 const layoutPath = join(__dirname, '/layouts/doc-body.hbs');
 const headerLayoutPath = join(__dirname, '/layouts/header.hbs');
-const footerLayoutPath = join(__dirname, '/layouts/footer.hbs');
-function getAllStyles(options) {
-    let cssStyleSheets = [];
-    // GitHub Markdown Style
-    if (options.ghStyle) {
-        cssStyleSheets.push(join(__dirname, '/assets/github-markdown-css.css'));
-    }
-    // Some additional defaults such as margins
-    if (options.defaultStyle) {
-        cssStyleSheets.push(join(__dirname, '/assets/default.css'));
-    }
-    // User provided CSS (including any highlight CSS they want)
-    if (options.styles) {
-        cssStyleSheets = cssStyleSheets.concat(options.styles);
-    }
+function getAllStyles() {
+    const cssStyleSheets = [DEFAULT_CSS, HIHGLIGHT_STYLES, GITHUB_MARKDOWN_CSS];
     return {
         styles: getStyles(cssStyleSheets),
         styleBlock: getStyleBlock(cssStyleSheets),
@@ -68,9 +56,6 @@ export async function convert(options) {
         source: options.source,
         destination: options.destination,
         assetDir: options.assetDir || dirname(resolve(options.source)),
-        ghStyle: options.ghStyle,
-        defaultStyle: options.defaultStyle,
-        styles: options.styles,
         header: options.header,
         footer: options.footer,
         noEmoji: options.noEmoji,
@@ -78,7 +63,7 @@ export async function convert(options) {
         waitUntil: options.waitUntil,
         pdf: options.pdf,
     };
-    const styles = getAllStyles(fullOptions);
+    const styles = getAllStyles();
     const css = new SafeString(styles.styleBlock);
     const local = {
         css: css,
@@ -98,7 +83,7 @@ export async function convert(options) {
     fullOptions.footer = footerHtml;
     const emojis = !fullOptions.noEmoji;
     const syntaxHighlighting = true; // Always enable syntax highlighting
-    const simpleLineBreaks = !fullOptions.ghStyle;
+    const simpleLineBreaks = false; // Always use GitHub-style line breaks
     let content = parseMarkdownToHtml(sourceMarkdown, emojis, syntaxHighlighting, simpleLineBreaks);
     content = qualifyImgSources(content, fullOptions);
     local.body = new SafeString(content);
@@ -178,7 +163,7 @@ async function createPdf(html, options) {
         try {
             unlinkSync(tempHtmlPath);
         }
-        catch (e) {
+        catch (_e) {
             // Ignore errors if the file doesn't exist or couldn't be deleted
         }
     }

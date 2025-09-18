@@ -116,43 +116,21 @@ describe('Convert CLI', () => {
     expect(stdout).to.include('test-img-output.pdf');
   });
 
-  it('HTML file contains the custom style when custom style is passed', async () => {
+  it('HTML file contains the default styles', async () => {
     await execa('node', [
       './dist/bin/index.js',
       './tests/test.md',
-      '--style=./tests/test.css',
       '--debug',
-    ]);
+    ], {
+      timeout: 10000,
+    });
 
     const htmlContent = readFileSync('./tests/test.html', 'utf8');
-    const cssContent = readFileSync('./tests/test.css', 'utf8');
-    const ghStyleContent = readFileSync(
-      './src/assets/github-markdown-css.css',
-      'utf8'
-    );
-
-    expect(htmlContent.includes(cssContent)).to.be.true;
-    expect(htmlContent.includes(ghStyleContent)).to.be.false;
-  });
-
-  it('HTML file contains the default styles when --gh-style is passed', async () => {
-    await execa('node', [
-      './dist/bin/index.js',
-      './tests/test.md',
-      '--style=./tests/test.css',
-      '--debug',
-      '--gh-style',
-    ]);
-
-    const htmlContent = readFileSync('./tests/test.html', 'utf8');
-    const cssContent = readFileSync('./tests/test.css', 'utf8');
-    const ghStyleContent = readFileSync(
-      './src/assets/github-markdown-css.css',
-      'utf8'
-    );
-
-    expect(htmlContent.includes(cssContent)).to.be.true;
-    expect(htmlContent.includes(ghStyleContent)).to.be.true;
+    
+    // Check that the HTML contains our inline styles
+    expect(htmlContent.includes('.markdown-body')).to.be.true;
+    expect(htmlContent.includes('font-size: 11px')).to.be.true;
+    expect(htmlContent.includes('.hljs')).to.be.true;
   });
 });
 

@@ -1,8 +1,5 @@
 import { expect } from 'chai';
-import { describe, it, beforeEach, afterEach } from 'vitest';
-import { join, resolve } from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import { describe, it } from 'vitest';
 import {
   getStyleBlock,
   getStyles,
@@ -10,65 +7,19 @@ import {
   processSrc,
   qualifyImgSources,
 } from '../src/utils.js';
-import { writeFileSync, unlinkSync, mkdirSync, existsSync } from 'fs';
-
-// Setup test environment
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const TEMP_DIR = join(__dirname, 'temp');
-
-// Utility function to create temporary directory and files for testing
-function createTempFiles() {
-  if (!existsSync(TEMP_DIR)) {
-    mkdirSync(TEMP_DIR);
-  }
-
-  const cssFile1 = join(TEMP_DIR, 'style1.css');
-  const cssFile2 = join(TEMP_DIR, 'style2.css');
-
-  writeFileSync(cssFile1, 'body { color: red; }');
-  writeFileSync(cssFile2, 'h1 { color: blue; }');
-
-  return { cssFile1, cssFile2 };
-}
-
-// Clean up function
-function cleanupTempFiles(files: string[]) {
-  files.forEach((file) => {
-    try {
-      unlinkSync(file);
-    } catch (err) {
-      // Ignore errors if file doesn't exist
-    }
-  });
-  
-  try {
-    unlinkSync(TEMP_DIR);
-  } catch (err) {
-    // Directory may not be empty or doesn't exist
-  }
-}
 
 describe('Utils - CSS functions', () => {
-  let tempFiles: { cssFile1: string; cssFile2: string };
-
-  beforeEach(() => {
-    tempFiles = createTempFiles();
-  });
-
-  afterEach(() => {
-    cleanupTempFiles([tempFiles.cssFile1, tempFiles.cssFile2]);
-  });
-
   it('getStyleBlock should wrap CSS content in style tags', () => {
-    const styleBlock = getStyleBlock([tempFiles.cssFile1, tempFiles.cssFile2]);
+    const cssStrings = ['body { color: red; }', 'h1 { color: blue; }'];
+    const styleBlock = getStyleBlock(cssStrings);
     
     expect(styleBlock).to.include('<style>body { color: red; }</style>');
     expect(styleBlock).to.include('<style>h1 { color: blue; }</style>');
   });
 
   it('getStyles should concatenate CSS content without style tags', () => {
-    const styles = getStyles([tempFiles.cssFile1, tempFiles.cssFile2]);
+    const cssStrings = ['body { color: red; }', 'h1 { color: blue; }'];
+    const styles = getStyles(cssStrings);
     
     expect(styles).to.include('body { color: red; }');
     expect(styles).to.include('h1 { color: blue; }');
