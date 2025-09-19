@@ -5,13 +5,24 @@ import showdown from 'showdown';
 const { setFlavor, Converter } = showdown;
 import showdownEmoji from 'showdown-emoji';
 import showdownHighlight from 'showdown-highlight';
-import { launch } from 'puppeteer';
+import { existsSync } from 'fs';
+import { launch } from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import handlebars from 'handlebars';
 const { SafeString, compile } = handlebars;
-import { allowUnsafeNewFunction } from 'loophole';
 import { getStyles, getStyleBlock, qualifyImgSources } from './utils.js';
 import { getOptions } from './puppeteer-helper.js';
 import { DEFAULT_CSS, GITHUB_MARKDOWN_CSS, HIHGLIGHT_STYLES, DOC_BODY_TEMPLATE, HEADER_TEMPLATE, FOOTER_TEMPLATE } from './constants.js';
+// Templates are now inline constants
+async function getChromiumExecutable() {
+    // Check for custom executable path from environment variable
+    const customPath = process.env.PUPPETEER_EXECUTABLE_PATH;
+    if (customPath && existsSync(customPath)) {
+        return customPath;
+    }
+    // Always use @sparticuz/chromium for serverless environments
+    return await chromium.executablePath();
+}
 function getAllStyles() {
     const cssStyleSheets = [DEFAULT_CSS, HIHGLIGHT_STYLES, GITHUB_MARKDOWN_CSS];
     return {
@@ -30,22 +41,28 @@ function parseMarkdownToHtml(markdown, convertEmojis, enableHighlight, simpleLin
     // Sometimes emojis can mess with time representations
     // such as "00:00:00"
     if (convertEmojis) {
-        options.extensions.push(showdownEmoji);
+        options.extensions?.push(showdownEmoji());
     }
     if (enableHighlight) {
-        options.extensions.push(showdownHighlight);
+        options.extensions?.push(showdownHighlight());
     }
     const converter = new Converter(options);
     return converter.makeHtml(markdown);
 }
+async function prepareHeader(options) {
+    const headerTemplate = compile(HEADER_TEMPLATE);
+    const styles = getAllStyles();
+    return headerTemplate({
+        css: styles.styleBlock,
+    });
+}
+async function prepareFooter(options) {
+    const footerTemplate = compile(FOOTER_TEMPLATE);
+    return footerTemplate({
+        css: '', // Footer doesn't need CSS
+    });
+}
 export async function convert(options) {
-    if (!options?.source) {
-        throw new Error('Source path must be provided');
-    }
-    if (!options.destination) {
-        throw new Error('Destination path must be provided');
-    }
-    // Create a complete options object with required properties
     const fullOptions = {
         source: options.source,
         destination: options.destination,
@@ -58,73 +75,34 @@ export async function convert(options) {
         pdf: options.pdf,
     };
     const styles = getAllStyles();
-    const css = new SafeString(styles.styleBlock);
-    const local = {
-        css: css,
-    };
-    // Asynchronously read files and prepare components
-    const layoutTemplate = compile(DOC_BODY_TEMPLATE);
+    const simpleLineBreaks = false; // Always use GitHub-style line breaks
     const sourcePromise = readFile(fullOptions.source, 'utf8');
-    const headerPromise = prepareHeader(fullOptions, styles.styles);
+    const headerPromise = prepareHeader(fullOptions);
     const footerPromise = prepareFooter(fullOptions);
-    const [sourceMarkdown, headerHtml, footerHtml] = await Promise.all([
+    const [source, header, footer] = await Promise.all([
         sourcePromise,
         headerPromise,
         footerPromise,
     ]);
-    fullOptions.header = headerHtml;
-    fullOptions.footer = footerHtml;
-    const emojis = !fullOptions.noEmoji;
-    const syntaxHighlighting = true; // Always enable syntax highlighting
-    const simpleLineBreaks = false; // Always use GitHub-style line breaks
-    let content = parseMarkdownToHtml(sourceMarkdown, emojis, syntaxHighlighting, simpleLineBreaks);
-    content = qualifyImgSources(content, fullOptions);
-    local.body = new SafeString(content);
-    // Use loophole for this body template to avoid issues with editor extensions
-    const html = allowUnsafeNewFunction(() => layoutTemplate(local));
-    return await createPdf(html, fullOptions);
-}
-async function prepareHeader(options, css) {
-    if (!options.header) {
-        return undefined; // Return early if no header
-    }
-    // Use inline template
-    const headerTemplate = compile(HEADER_TEMPLATE);
-    // Get the header html
-    const headerContent = await readFile(options.header, 'utf8');
-    const preparedHeader = qualifyImgSources(headerContent, options);
-    // Compile the header template
-    const headerHtml = headerTemplate({
-        content: new SafeString(preparedHeader),
-        css: new SafeString(css.replace(/"/gm, "'")),
+    const html = parseMarkdownToHtml(source, !fullOptions.noEmoji, true, simpleLineBreaks);
+    const layoutTemplate = compile(DOC_BODY_TEMPLATE);
+    const qualifiedHtml = qualifyImgSources(html, { assetDir: fullOptions.assetDir });
+    const finalHtml = layoutTemplate({
+        css: styles.styleBlock,
+        body: new SafeString(qualifiedHtml),
     });
-    return headerHtml;
-}
-function prepareFooter(options) {
-    if (options.footer) {
-        return readFile(options.footer, 'utf8').then((footerContent) => {
-            const preparedFooter = qualifyImgSources(footerContent, options);
-            // Use inline template
-            const footerTemplate = compile(FOOTER_TEMPLATE);
-            const footerHtml = footerTemplate({
-                content: new SafeString(preparedFooter),
-                css: new SafeString(''), // Footer doesn't need CSS styling
-            });
-            return footerHtml;
-        });
-    }
-    else {
-        return Promise.resolve(undefined);
-    }
+    return createPdf(finalHtml, fullOptions);
 }
 async function createPdf(html, options) {
     const tempHtmlPath = resolve(dirname(options.destination), '_temp.html');
     let browser = null; // Initialize browser to null
     try {
         await writeFile(tempHtmlPath, html);
+        const executablePath = await getChromiumExecutable();
         browser = await launch({
             headless: true, // Use boolean instead of 'new' string
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            executablePath,
+            args: chromium.args, // Always use serverless-optimized args
         });
         const page = (await browser.pages())[0];
         await page.goto('file:' + tempHtmlPath, {
@@ -151,18 +129,22 @@ async function createPdf(html, options) {
     catch (error) {
         // Ensure browser is closed even if an error occurs
         if (browser) {
-            await browser.close();
+            try {
+                await browser.close();
+            }
+            catch (closeError) {
+                // Ignore close errors
+            }
         }
-        // Re-throw the error to be handled by the caller
         throw error;
     }
     finally {
-        // Clean up temp file in case of error or success
+        // Clean up temporary HTML file
         try {
             unlinkSync(tempHtmlPath);
         }
-        catch (_e) {
-            // Ignore errors if the file doesn't exist or couldn't be deleted
+        catch (unlinkError) {
+            // Ignore unlink errors
         }
     }
 }
