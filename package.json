@@ -44,13 +44,12 @@
   },
   "homepage": "https://github.com/elliotblackburn/mdpdf#readme",
   "dependencies": {
-    "@sparticuz/chromium": "^138.0.2",
     "cheerio": "1.0.0-rc.12",
     "file-url": "^4.0.0",
     "handlebars": "^4.7.8",
     "loophole": "^1.1.0",
     "meow": "^13.2.0",
-    "puppeteer-core": "^24.22.0",
+    "puppeteer": "^24.7.2",
     "showdown": "^2.1.0",
     "showdown-emoji": "^3.0.0",
     "showdown-highlight": "^3.1.0"
